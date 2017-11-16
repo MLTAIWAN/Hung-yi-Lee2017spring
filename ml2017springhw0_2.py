@@ -38,11 +38,13 @@ arr_willy = np.zeros(arr_lena_mod.shape, dtype=arr_lena_mod.dtype)
 print(arr_willy.shape)
 for i in range(arr_willy.shape[0]):
     for j in range(arr_willy.shape[1]):
+        threeflag=1
         for k in range(arr_willy.shape[2]):
-            if (arr_lena_mod[i][j][k]==arr_lena[i][j][k]):
-                arr_willy.itemset((i,j,k), 0)
-            else:
+            if (arr_lena_mod[i][j][k]!=arr_lena[i][j][k]):
+                threeflag*=0
                 #print("Different elements %i %i " %(arr_lena_mod[i][j][k],arr_lena[i][j][k]))
+        if threeflag==0: #any color is not the same
+            for k in range(arr_willy.shape[2]):
                 arr_willy.itemset((i,j,k), arr_lena_mod[i][j][k])
             
 #PIL show

@@ -10,11 +10,11 @@ from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 
-fName_lena = "lena.jpeg"
-fName_lena_modified = "lena_modified.jpeg"
+fName_lena = "lena.png"
+fName_lena_modified = "lena_modified.png"
 
-im_lena = Image.open(fName_lena).convert('RGB')
-im_lena_mod = Image.open(fName_lena_modified).convert('RGB')
+im_lena = Image.open(fName_lena).convert('RGBA')
+im_lena_mod = Image.open(fName_lena_modified).convert('RGBA')
 
 
 arr_lena = np.array(im_lena)

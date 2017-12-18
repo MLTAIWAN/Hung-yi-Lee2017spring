@@ -36,8 +36,8 @@ class LogisticRegression(object):
                 X,y = self._shuffle(X,y)
 
             self.error_.append(self._get_error(X,y))
-            #if i_trai % 500 ==0:
-            #    print("Epoch {}, E_in is {}".format(i_trai+1,self.error_[-1]))
+            if i_trai % 500 ==0:
+                print("Epoch {}, E_in is {}".format(i_trai+1,self.error_[-1]))
             #set early stop here                                                              
             if i_trai>50:
                 if (self.error_[-1]>self.error_[-2]):
@@ -73,7 +73,7 @@ class LogisticRegression(object):
         self.w_[1:] += self.eta*(-1.0/n_samples)*gra
         self.w_[0] += self.eta*(-1.0/n_samples)*grab
         
-        """
+    """
     #obtain the Ein for each step (MSE)
     def _get_error(self, X, y):
         n_samples=X.shape[0]

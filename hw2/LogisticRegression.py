@@ -53,7 +53,9 @@ class LogisticRegression(object):
         return np.random.uniform(-1.0,1.0, size=self.n_features+1)
 
     def _sigmoid(self,z):
-        return expit(z) #sigmoid function
+        #return expit(z) #sigmoid function
+        res = 1.0/(1.0+np.exp(-z))
+        return np.clip(res, 0.1e-12, 0.999999999999999)
 
     #shuffle the data
     def _shuffle(self, X, y):
@@ -73,12 +75,12 @@ class LogisticRegression(object):
         self.w_[1:] += self.eta*(-1.0/n_samples)*gra
         self.w_[0] += self.eta*(-1.0/n_samples)*grab
         
-    """
-    #obtain the Ein for each step (MSE)
+    
+    #obtain the Ein for each step (error rate)
     def _get_error(self, X, y):
         n_samples=X.shape[0]
         pre_=self.predict(X)        
-        Ein_p=np.square(np.subtract(pre_,y))
+        Ein_p=np.absolute(np.subtract(pre_,y))
         return (1.0/n_samples)*np.sum(np.array(Ein_p))
 
     """
@@ -91,8 +93,9 @@ class LogisticRegression(object):
         #Ein_p = np.log(1+np.exp(-1*np.multiply(wx_, y))) #element wise multiply
         Ein_p = -1*(np.multiply(y,np.log(wx_))+np.multiply(1-y, np.log(1-wx_)))
         return (1.0/n_samples)*np.sum(Ein_p)
+    """    
     
-    #return wx
+
     def net_input(self, X):
         return np.dot(X, self.w_[1:])+self.w_[0]
 

@@ -20,3 +20,8 @@
   usage: ml2017fallhw5_mftest-keras.py [-h] [--movie_file MOVIEF]
                                      [--movie_emb M_EMB]
                                      
+## Loss of Matrix Factorization 
+* The loss became stable from ~100 epoches. The best loss (RMSE) of MF method with normalized rates is about 0.964.
+![Loss MF Latent dimension = 15](https://github.com/MLTAIWAN/Hung-yi-Lee2017spring/blob/kunxian/hw5/result/dnnloss_rmse_norm_d15.png "RMSE")
+
+## Loss of DNN

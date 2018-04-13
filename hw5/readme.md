@@ -20,13 +20,10 @@
   usage: ml2017fallhw5_mftest-keras.py [-h] [--movie_file MOVIEF]
                                      [--movie_emb M_EMB]
                                      
-## Loss of Matrix Factorization 
-* The loss became stable from ~100 epoches. The best loss (RMSE) of MF method with normalized rates is about 0.964.
+## Loss (RMSE) verse epochs
+* MF: The loss became stable from ~100 epoches. The best loss (RMSE) of MF method with normalized rates is about 0.964.
 
-
-
-## Loss of DNN
-* The loss became stable from ~15 epoches. The best loss (RMSE) of DNN method is about 0.89.
+* DNN: The loss became stable from ~15 epoches. The best loss (RMSE) of DNN method is about 0.89.
 
 * This plot shows the comparison between DNN and MF methods
 

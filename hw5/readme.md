@@ -28,3 +28,6 @@
 * This plot shows the comparison between DNN and MF methods
 
 #![Loss comparison](https://github.com/MLTAIWAN/Hung-yi-Lee2017spring/blob/kunxian/hw5/result/loss_compare3.png "MF & DNN RMSE")
+
+## T-SNE for movie label
+#![movie Geren labels](https://github.com/MLTAIWAN/Hung-yi-Lee2017spring/blob/kunxian/hw5/tsne_dnn_50d.png "TSNE plot for movie Genres labels")

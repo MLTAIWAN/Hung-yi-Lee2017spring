@@ -227,8 +227,19 @@ def main():
 
     loss_summary = tf.summary.scalar('CE_Ein', loss)
     file_writer = tf.summary.FileWriter(logdir, tf.get_default_graph())
+    #save batch normalization moving mean and deviation variables
+    tvars = tf.model_variables()
+    
+    batchnorm_vars = [var for var in tvars if 'moving' in var.name]
+    save_vars = tf.trainable_variables() + batchnorm_vars
+    vnames = [var.name for var in save_vars]
+    print("All variables:{}".format(vnames))
     #prepare to save model
-    saver = tf.train.Saver(max_to_keep=7, keep_checkpoint_every_n_hours=1)
+    saver = tf.train.Saver(save_vars, max_to_keep=7, keep_checkpoint_every_n_hours=1)
+    #tvars = tf.global_variables()
+    
+
+
     with tf.Session() as sess:
         init.run()
         early_stop_counter = 0

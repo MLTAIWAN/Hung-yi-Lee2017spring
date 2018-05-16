@@ -174,13 +174,17 @@ class cnn_model(object):
         
         model_learning_rate = tf.train.exponential_decay(self.learning_rate, gene_num,
                                                          num_gens_to_wait ,lr_decay, staircase=True)
-        #optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
-        #optimizer = tf.train.RMSPropOptimizer(learning_rate=self.learning_rate,momentum=0.9, decay=0.9, epsilon=1e-10)
-        optimizer = tf.train.AdadeltaOptimizer(learning_rate=self.learning_rate, rho=0.95, epsilon=1e-08)
-        #optimizer = tf.train.MomentumOptimizer(learning_rate=model_learning_rate,
-        #                                       momentum=0.9, use_nesterov=True)
-        #training_op = optimizer.minimize(loss, global_step=gene_num)
-        training_op = optimizer.minimize(loss)
+        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        with tf.control_dependencies(update_ops):
+
+            #optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
+            #optimizer = tf.train.RMSPropOptimizer(learning_rate=self.learning_rate,momentum=0.9, decay=0.9, epsilon=1e-10)
+            optimizer = tf.train.AdadeltaOptimizer(learning_rate=self.learning_rate, rho=0.95, epsilon=1e-08)
+            #optimizer = tf.train.MomentumOptimizer(learning_rate=model_learning_rate,
+            #                                       momentum=0.9, use_nesterov=True)
+            #training_op = optimizer.minimize(loss, global_step=gene_num)
+            training_op = optimizer.minimize(loss)
+            
         return training_op
     
     def accuracy(self, logits, targets):

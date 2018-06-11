@@ -1,0 +1,3 @@
+model_checkpoint_path: "Sentimen_rnn-40"
+all_model_checkpoint_paths: "Sentimen_rnn-20"
+all_model_checkpoint_paths: "Sentimen_rnn-40"

@@ -39,3 +39,14 @@ positional arguments:
   model
   {train,test,semi}
 
+## NN architecture
+* picture of 3 layers of LSTM RNN
+#![RNN architeture](https://github.com/MLTAIWAN/Hung-yi-Lee2017spring/blob/kunxian/hw4/plots/architeture.jpg "3 layers LSTM")
+
+## Cost of training and validation at training
+* picture of cost by tensorboard
+#![cost](https://github.com/MLTAIWAN/Hung-yi-Lee2017spring/blob/kunxian/hw4/plots/cost_trainvalid.png "cost function during training")
+
+## Accuraycy of validation at training
+* picture of accuracy for validation data
+#![accuracy](https://github.com/MLTAIWAN/Hung-yi-Lee2017spring/blob/kunxian/hw4/plots/accuracy_valid.png "accuracy function during training")

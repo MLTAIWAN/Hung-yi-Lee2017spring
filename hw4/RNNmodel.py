@@ -13,7 +13,11 @@ class simpleRNN(object):
         # Embedding layer
         # Define Embedding
         with tf.name_scope("embeddings"):
-            self.embedding_mat = tf.get_variable('embedding_mat', [args.vocab_size, args.embedding_dim],
+            if(args.pretrain_emb==True):
+                self.embedding_mat = tf.Variable(tf.constant(0.1,shape=[args.vocab_size, args.embedding_dim]),
+                                                 trainable=True, name='embedding_mat')
+            else:
+                self.embedding_mat = tf.get_variable('embedding_mat', [args.vocab_size, args.embedding_dim],
                                                  tf.float32, tf.random_normal_initializer())
             self.RNNcells=None
         
@@ -79,6 +83,9 @@ class simpleRNN(object):
         """
         calculate accuracy used in the validation
         """
-        correct_pred = tf.equal(tf.cast(tf.round(predictions), tf.int32), tf.squeeze(labels))
-        return tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+        correct_pred = tf.equal(tf.cast(tf.round(tf.squeeze(predictions)), tf.int32), tf.squeeze(labels))
+        accu = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+        tf.summary.scalar('accuracy', accu)
+        return accu
+    
     

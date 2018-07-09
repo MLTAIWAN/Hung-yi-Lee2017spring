@@ -21,8 +21,12 @@ def get_batches(x, y, batch_size=100):
         yield x[ii:ii+batch_size], y[ii:ii+batch_size]
 
 def get_batches_nolabel(x, batch_size=100):
-    n_batches = len(x)//batch_size
+    n_batches = len(x)//batch_size+1
     x = x[:n_batches*batch_size]
     for ii in range(0, len(x), batch_size):
-        yield x[ii:ii+batch_size]
+        if (ii+batch_size<len(x)):
+            yield x[ii:ii+batch_size]
+        else:
+            repeat_idx = ii+batch_size-len(x)
+            yield np.vstack((x[ii:ii+batch_size],x[:repeat_idx]))
     

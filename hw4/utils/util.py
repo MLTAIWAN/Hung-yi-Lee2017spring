@@ -34,7 +34,7 @@ class DataManager(object):
     #  vocab_size : maximum number of word in your dictionary
     def tokenize(self, vocab_size):
         print ('create new tokenizer')
-        self.tokenizer = tf.keras.preprocessing.text.Tokenizer(num_words=vocab_size)
+        self.tokenizer = tf.keras.preprocessing.text.Tokenizer(num_words=vocab_size, filters='"#%&()*+,-./:;<=>@[\\]^_`{|}~\t\n') # use filter without ? $ !
         for key in self.data:
             print ('tokenizing %s'%key)
             texts = self.data[key][0]
@@ -51,7 +51,7 @@ class DataManager(object):
         print ('Load tokenizer from %s'%path)
         self.tokenizer = pk.load(open(path, 'rb'))
 
-    # Convert words in data to index and pad to equal size
+    # Convert words in sentences to index and pad to equal size
     #  maxlen : max length after padding
     def to_sequence(self, maxlen):
         self.maxlen = maxlen
@@ -61,7 +61,15 @@ class DataManager(object):
             tmp = self.tokenizer.texts_to_sequences(self.data[key][0])
             #Pads sequences to the same length.
             self.data[key][0] = np.array(tf.keras.preprocessing.sequence.pad_sequences(tmp, maxlen=maxlen))
-    
+
+    # Convert words in setences to index without padding
+    def to_sequence_nopad(self):
+        for key in self.data:
+            print ('Converting %s to sequences'%key)
+            #Convert a list of texts to a Numpy matrix.
+            tmp = self.tokenizer.texts_to_sequences(self.data[key][0])
+            self.data[key][0] = tmp
+            
     # Convert texts in data to BOW feature
     def to_bow(self):
         for key in self.data:

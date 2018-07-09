@@ -1,6 +1,5 @@
 #!/bin/env python3
-#-*-coding=utf-8 -*-
-
+#-*- coding=utf-8 -*-
 
 import os, sys
 import readline
@@ -10,6 +9,7 @@ import copy
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import progressbar as pb
 import _pickle as pk
 from utils.util import DataManager
 from utils.batch_index import batch_index, get_batches, get_batches_nolabel
@@ -21,13 +21,13 @@ def main():
     parser.add_argument('action', choices=['train','test','semi'])
 
     # training argument
-    parser.add_argument('--batch_size', default=64, type=float)
-    parser.add_argument('--nb_epoch', default=30, type=int)
+    parser.add_argument('--batch_size', default=256, type=float)
+    parser.add_argument('--nb_epoch', default=400, type=int)
     parser.add_argument('--val_ratio', default=0.1, type=float)
-    parser.add_argument('--gpu_fraction', default=0.4, type=float)
+    parser.add_argument('--gpu_fraction', default=0.6, type=float)
     parser.add_argument('--vocab_size', default=20000, type=int)
     parser.add_argument('--max_length', default=40,type=int)
-    parser.add_argument('--patience', default = 4, type=int)
+    parser.add_argument('--patience', default = 10, type=int)
     
     # model parameter
     parser.add_argument('--loss_function', default='binary_crossentropy')
@@ -35,15 +35,18 @@ def main():
     parser.add_argument('-num_lay', '--num_layers', default=3, type=int)
     parser.add_argument('-emb_dim', '--embedding_dim', default=128, type=int)
     parser.add_argument('-hid_siz', '--hidden_size', default=512, type=int)
+    parser.add_argument('--pretrain_emb', default=False, type=bool)
+    parser.add_argument('--emb_matrix', default='cbowemb.npz')
 #    parser.add_argument('--dropout_rate', default=0.3, type=float)
     parser.add_argument('--keep_prob', default=1.0, type=float)
-    parser.add_argument('-lr','--learning_rate', default=0.001,type=float)
-    parser.add_argument('--threshold', default=0.1,type=float)
+    parser.add_argument('-lr','--learning_rate', default=0.013,type=float)
+    parser.add_argument('--threshold', default=0.3,type=float)
     # output path for your prediction
     parser.add_argument('--result_path', default='result.csv',)
     
     # put model in the same directory
     parser.add_argument('--load_model', default = None)
+    parser.add_argument('--load_token', default = None, type=bool)
     parser.add_argument('--save_dir', default = 'model/')
     # log dir for tensorboard
     parser.add_argument('--log_dir', default='log_dir/')
@@ -55,8 +58,8 @@ def main():
 
     save_path = 'token/'
     #load token path
-    if args.load_model is not None:
-        load_path = os.path.join(args.save_dir,args.load_model)
+    if args.load_token is not None:
+        load_path = os.path.join(save_path)
         
     # limit gpu memory usage
     def get_session(gpu_fraction):
@@ -79,7 +82,7 @@ def main():
             
     # prepare tokenizer
     print ('get Tokenizer...')
-    if args.load_model is not None:
+    if args.load_token is not None:
         # read exist tokenizer
         dm.load_tokenizer(os.path.join(load_path,'token.pk'))
     else:
@@ -135,9 +138,10 @@ def main():
     routputs = rnnmodel.outputs
     
     if args.load_model is not None:
+        load_path = os.path.join(args.save_dir)
         if args.action == 'train':
             print ('Warning : load a exist model variables and keep training')
-        path = os.path.join(load_path,'Sentimen_rnn_final.ckpt')
+        path = os.path.join(load_path,'Sentimen_rnn_final')
         if os.path.exists(path+".meta"):
             print ('load model from %s' % path)
             #model.load_weights(path) change to tensorflow model
@@ -172,6 +176,18 @@ def main():
     
     with tf.Session() as sess:
         init.run()
+
+        #if pre-trained, load embedding matrix
+        if (args.pretrain_emb==True):
+            emb_npfn = save_path+args.emb_matrix
+            emb_matrix = np.load(emb_npfn)['embed_m']
+            if (emb_matrix.shape[0]!= args.vocab_size or emb_matrix.shape[1]!=args.embedding_dim):
+                print("Import embedding matrix shape {} does not match shape of ({},{})...".format(emb_matrix.shape, args.vocab_size, args.embedding_dim))
+                exit(1)
+            else:
+                print("Loading embedding matrix.....")
+                sess.run(rnnmodel.embedding_mat.assign(emb_matrix))
+            
         train_writer = tf.summary.FileWriter(args.log_dir+'train', sess.graph)
         valid_writer = tf.summary.FileWriter(args.log_dir+'valid', sess.graph)
         # load variables in graphs if assigned
@@ -189,13 +205,27 @@ def main():
                 semi_preds = []
                 # add semi-data for the training
                 if (args.action == 'semi' and e%2==0):
+                    n_semi_entries = int(len(semi_all_X)/args.batch_size)+1
+                    widgets = ["Simi-training events batches:", pb.Percentage(), pb.Bar(), pb.ETA()]
+                    pbar = pb.ProgressBar(maxval=n_semi_entries, widgets=widgets).start()
+
+                    #isemi_batch = 0
                     # label the semi-data
                     for ise, X_batch in enumerate(get_batches_nolabel(semi_all_X, args.batch_size)):
+                        pbar.update(ise+1)
                         semi_dict = {X_:X_batch, init_state: state}
-                        semi_pred = sess.run([y_predict], feed_dict=semi_dict)
+                        semi_pred = sess.run(y_predict, feed_dict=semi_dict)
                         #print("shape of semi_pred for each batch is {}".format(semi_pred.shape))
                         semi_preds.extend(semi_pred)
-
+                        #isemi_batch+=1
+                    
+                        
+                    pbar.finish()
+                    #extract first len(semi_all_X) elements
+                    n_semi = len(semi_all_X)
+                    semi_preds = semi_preds[:n_semi]
+                    print("shape of semi_preds is {}".format(np.array(semi_preds).shape))
+                        
                     semi_X, semi_Y = dm.get_semi_data('semi_data', semi_preds, args.threshold, args.loss_function)
                     #combine labeled data with semi-data to training data
                     X_train = np.concatenate((semi_X, X))
@@ -216,7 +246,7 @@ def main():
                     train_dict = {X_:X_batch, y_:y_batch, keep_prob:args.keep_prob, init_state: state}
                     #for each traing generation, reload zero initial states
                     
-                    _, summary, mse_train = sess.run([train_op, merged, mse], feed_dict=train_dict)
+                    _, summary, mse_train, accu_train = sess.run([train_op, merged, mse, accuracy], feed_dict=train_dict)
                     
                     train_writer.add_summary(summary, generation_num)
                     outputs_ = routputs.eval( feed_dict=train_dict)
@@ -230,7 +260,7 @@ def main():
                           "Train loss: {:.3f}".format(mse_train))
 
                     #validation for each 50 generations or end of each epoch
-                    if (generation_num %5 ==0 or ix==n_batches):
+                    if (generation_num %50 ==0 or ix==n_batches):
                         val_acc = []
                         val_loss = []
                         val_state = sess.run([init_state])
@@ -251,13 +281,19 @@ def main():
                                                         
                             val_loss.append(batch_loss)
                             val_acc.append(batch_acc)
+
+                            sys.stdout.flush()
+                            
                             
                         print("Iteration: {}".format(generation_num),
-                              "Val acc: {:.3f}".format(np.mean(val_acc)))
+                              "Val acc: {:.3f}".format(np.mean(val_acc)),
+                              "Val mse: {:.3f}".format(np.mean(val_loss)))
+                              
                         valid_writer.add_summary(summary, generation_num)
                         loss_val_avg = np.mean(val_loss)
                         #save variables every 50 generations
                         saver.save(sess, os.path.join(args.save_dir, "Sentimen_rnn"), global_step=generation_num)
+                        
                         
                         if(ix==n_batches): 
                             #early stop count here        
@@ -285,4 +321,3 @@ def main():
 
 if  __name__ == "__main__":
     main()
-

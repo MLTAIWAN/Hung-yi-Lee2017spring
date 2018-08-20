@@ -21,8 +21,8 @@ def draw2face(img_origin, img_recon, plt, savefn=''):
     ax1.set_title(title)
 
     ca2 = ax2.imshow(img_recon, interpolation='nearest')
-    cbar2 = fig.colorbar(ca2,ax=ax2)
-    plt.tight_layout()
+    #cbar2 = fig.colorbar(ca2,ax=ax2)
+    #plt.tight_layout()
     frame = plt.gcf()
     ax2.set_title('PCA reconstructed pic:')
     
